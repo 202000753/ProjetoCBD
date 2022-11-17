@@ -61,7 +61,7 @@ GO
  ********************************************/
  --DROP TABLE UsersInfo.Country;
 CREATE TABLE UsersInfo.Country (
-	CouID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	CouId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
 	CouName VARCHAR(20) NOT NULL,
 	CouContinent VARCHAR(20) NOT NULL
 );
@@ -69,8 +69,7 @@ GO
 
 --DROP TABLE UsersInfo.StateProvince;
 CREATE TABLE UsersInfo.StateProvince (
-	StaProID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    StaProCountry INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.Country(CouID),
+	StaProId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
 	StaProName VARCHAR(50) NOT NULL,
 	StaProCode VARCHAR(5)
 );
@@ -78,35 +77,45 @@ GO
 
 --DROP TABLE UsersInfo.City;
 CREATE TABLE UsersInfo.City (
-	CitID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	CitId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
 	CitName VARCHAR(50) NOT NULL,
 	CitSalesTerritory VARCHAR(50),
 	CitLasPopulationRecord INT
 );
 GO
 
---DROP TABLE UsersInfo.StateProvince_City;
-CREATE TABLE UsersInfo.StateProvince_City (
-	StaPro_CitStateID int NOT NULL foreign key references UsersInfo.StateProvince (StaProID),
-	StaPro_CitCityID int NOT NULL foreign key references UsersInfo.City (CitID),
-	PRIMARY KEY(StaPro_CitStateID, StaPro_CitCityID)
+--DROP TABLE UsersInfo.Category;
+CREATE TABLE UsersInfo.Category (
+	CatId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	CatName VARCHAR(20) NOT NULL
+);
+GO
+
+--DROP TABLE UsersInfo.Region_Category;
+CREATE TABLE UsersInfo.Region_Category (
+	Reg_CatId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	Reg_CatCitStateProvinceId INT NOT NULL foreign key references UsersInfo.StateProvince (StaProId),
+	Reg_CatCityId INT NOT NULL foreign key references UsersInfo.City (CitId),
+	Reg_CatCategoryId INT NOT NULL foreign key references UsersInfo.Category (CatId),
+	Reg_CatCountryId INT NOT NULL foreign key references UsersInfo.Country (CouId),
+	Reg_CatPostalCode INT
 );
 GO
 
  --DROP TABLE UsersInfo.SysUser;
 CREATE TABLE UsersInfo.SysUser (
-	SysUseID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    SysUseEmail NVARCHAR(30) UNIQUE NOT NULL,
-	SysUsePassword NVARCHAR(20) NOT NULL,
-	SysUseName VARCHAR(30) NOT NULL
+	SysUseId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    SysUseEmail VARCHAR(50) UNIQUE NOT NULL,
+	SysUsePassword VARCHAR(20) NOT NULL,
+	SysUseName VARCHAR(40) NOT NULL
 );
 GO
 
 --DROP TABLE UsersInfo.Token;
 CREATE TABLE UsersInfo.Token (
-	TokID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    TokUserID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseID),
-    TokMail NVARCHAR(30) NOT NULL,
+	TokId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TokUserId INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseId),
+    TokMail VARCHAR(30) NOT NULL,
 	TokDate TIMESTAMP NOT NULL,
 	TokToken INT UNIQUE NOT NULL
 );
@@ -114,44 +123,84 @@ GO
 
 --DROP TABLE UsersInfo.ErrorLog;
 CREATE TABLE UsersInfo.ErrorLog (
-	ErrLogID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    ErrLogUserID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseID),
-    ErrLogError NVARCHAR(100) NOT NULL,
+	ErrLogId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    ErrLogUserId INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseId),
+    ErrLogError VARCHAR(100) NOT NULL,
 	ErrLogDate Date NOT NULL
 );
 GO
 
 --DROP TABLE UsersInfo.Employee;
 CREATE TABLE UsersInfo.Employee (
-	EmpID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    EmpUserID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseID),
+    EmpUserId INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseId),
 	EmpPreferedName VARCHAR(10),
-	EmpIsSalesPerson BIT NOT NULL
+	EmpIsSalesPerson BIT NOT NULL,
+	PRIMARY KEY(EmpUserId)
 );
 GO
 
---DROP TABLE UsersInfo.Category;
-CREATE TABLE UsersInfo.Category (
-	CatID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	CatName VARCHAR(20) NOT NULL
+--DROP TABLE UsersInfo.BuyingGroup;
+CREATE TABLE UsersInfo.BuyingGroup (
+	BuyGrouId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	BuyGrouName VARCHAR(20) NOT NULL
+);
+GO
+
+--DROP TABLE UsersInfo.Customer;
+CREATE TABLE UsersInfo.Customer (
+    CusUserId INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseId),
+    CusHeadquartersId INT FOREIGN KEY REFERENCES UsersInfo.Customer(CusUserId),
+    CusRegion_CategoryId INT FOREIGN KEY REFERENCES UsersInfo.Region_Category(Reg_CatId),
+    CusBuyingGroupId INT FOREIGN KEY REFERENCES UsersInfo.BuyingGroup(BuyGrouId),
+	CusPrimaryContact VARCHAR(40),
+	PRIMARY KEY(CusUserId)
+);
+GO
+
+--DROP TABLE ProductsInfo.Package;
+CREATE TABLE ProductsInfo.Package (
+	PacId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	PacPackage VARCHAR(25) NOT NULL
+);
+GO
+
+--DROP TABLE ProductsInfo.Brand;
+CREATE TABLE ProductsInfo.Brand (
+	BraId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	BraName VARCHAR(25) NOT NULL
+);
+GO
+
+--DROP TABLE ProductsInfo.ProductType;
+CREATE TABLE ProductsInfo.ProductType (
+	ProTypId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	ProTypName VARCHAR(25) NOT NULL
+);
+GO
+
+--DROP TABLE ProductsInfo.TaxRate;
+CREATE TABLE ProductsInfo.TaxRate (
+	TaxRatId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	TaxRatTaxRate FLOAT NOT NULL
 );
 GO
 
 --DROP TABLE ProductsInfo.Product;
 CREATE TABLE ProductsInfo.Product (
-	ProdID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	ProdName NVARCHAR(100) NOT NULL,
-	ProdColor NVARCHAR(50),
-	ProdSellingPackage NVARCHAR(20),
-	ProdBuyingPackage NVARCHAR(20),
-	ProdBrand NVARCHAR(50),
-	ProdSize NVARCHAR(20),
+	ProdId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    ProdBrandId INT FOREIGN KEY REFERENCES ProductsInfo.Brand(BraId),
+    ProdTaxRateId INT FOREIGN KEY REFERENCES ProductsInfo.TaxRate(TaxRatId),
+    ProdProductTypeId INT FOREIGN KEY REFERENCES ProductsInfo.ProductType(ProTypId),
+    ProdBuyingPackageId INT FOREIGN KEY REFERENCES ProductsInfo.Package(PacId),
+    ProdSellingPackageId INT FOREIGN KEY REFERENCES ProductsInfo.Package(PacId),
+	ProdName VARCHAR(100) NOT NULL,
+	ProdColor VARCHAR(50),
+	ProdBrand VARCHAR(50),
+	ProdSize VARCHAR(20),
 	ProdLeadTimeDays INT,
 	ProdQuantityPerOuter INT NOT NULL,
 	ProdStock INT,
-	ProdIsChiller BIT,
 	ProdBarCode INT,
-	ProdTaxRate FLOAT,
 	ProdUnitPrice FLOAT NOT NULL,
 	ProdRecommendedRetailPrice FLOAT,
 	ProdTypicalWeightPerUnit FLOAT
@@ -160,67 +209,43 @@ GO
 
 --DROP TABLE ProductsInfo.Promotion;
 CREATE TABLE ProductsInfo.Promotion (
-	PromID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	PromNewPrice FLOAT,
-	PromDescription VARCHAR(100) NOT NULL,
+	PromId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	PromDescription VARCHAR(100),
 	PromStartDate DATE NOT NULL,
 	PromEndDate DATE NOT NULL
 );
 GO
 
---DROP TABLE UsersInfo.Customer;
-CREATE TABLE UsersInfo.Customer (
-	CusID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    CusUserID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.SysUser(SysUseID),
-    CusCategoryID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.Category(CatID),
-    CusCityID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.City(CitID),
-    CusBillToCustomer INT FOREIGN KEY REFERENCES UsersInfo.Customer(CusID),
-	CusBuyingGroup VARCHAR(30),
-	CusPrimaryContact VARCHAR(40),
-	CusPostalCode INT,
-	CusDeliveryAddress VARCHAR(40)
+--DROP TABLE ProductsInfo.Product_Promotion;
+CREATE TABLE ProductsInfo.Product_Promotion (
+	Prod_PromProductPromotionId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	Prod_PromProductId INT  NOT NULL foreign key references ProductsInfo.Product (ProdId),
+	Prod_PromPromotionId INT NOT NULL foreign key references ProductsInfo.Promotion (PromId),
+	ProdNewPrice FLOAT NOT NULL
 );
 GO
 
 --DROP TABLE SalesInfo.Sale;
 CREATE TABLE SalesInfo.Sale (
 	SalID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    SalCustomerID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.Customer(CusID),
-    SalEmployeeID INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.Employee(EmpID),
+    SalCustomerId INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.Customer(CusUserId),
+    SalEmployeeId INT NOT NULL FOREIGN KEY REFERENCES UsersInfo.Employee(EmpUserId),
 	SalDate DATE NOT NULL,
 	SalDeliveryDate DATE,
-	SalWWWIInvoiceID INT,
-	SalDescription NVARCHAR(50),
-	SalIsChiller BIT,
-	SalIsFinished BIT NOT NULL,
+	SalDescription VARCHAR(100),
 	SalProfit FLOAT,
-	SalTaxAmount FLOAT,
+	SalTotalPrice FLOAT,
 	SalTotalExcludingTax FLOAT,
-	SalTotalPrice FLOAT
-);
-GO
-
---DROP TABLE SalesInfo.Product_Sale;
-CREATE TABLE SalesInfo.Product_Sale (
-	Prod_SalProductID int NOT NULL foreign key references ProductsInfo.Product (ProdID),
-	Prod_SalSaleID int NOT NULL foreign key references SalesInfo.Sale (SalID),
-	Prod_SalQuantity INT NOT NULL,
-	PRIMARY KEY(Prod_SalProductID, Prod_SalSaleID)
-);
-GO
-
---DROP TABLE ProductsInfo.Product_Promotion;
-CREATE TABLE ProductsInfo.Product_Promotion (
-	Prod_PromProductID int NOT NULL foreign key references ProductsInfo.Product (ProdID),
-	Prod_PromPromotionID int NOT NULL foreign key references ProductsInfo.Promotion (PromID),
-	PRIMARY KEY(Prod_PromProductID, Prod_PromPromotionID)
+	SalTaxAmount FLOAT,
+	SalIsFinished BIT NOT NULL
 );
 GO
 
 --DROP TABLE SalesInfo.ProductPromotion_Sale;
 CREATE TABLE SalesInfo.ProductPromotion_Sale (
-	ProdProm_SalPromotionID int NOT NULL foreign key references ProductsInfo.Promotion (PromID),
-	ProdProm_SalSaleID int NOT NULL foreign key references SalesInfo.Sale (SalID),
-	PRIMARY KEY(ProdProm_SalPromotionID, ProdProm_SalSaleID)
+	ProdProm_SalProductPromotionId INT NOT NULL foreign key references ProductsInfo.Product_Promotion (Prod_PromProductPromotionId),
+	ProdProm_SalSaleId INT NOT NULL foreign key references SalesInfo.Sale (SalID),
+	ProdProm_SalQuantity INT NOT NULL,
+	PRIMARY KEY(ProdProm_SalProductPromotionId, ProdProm_SalSaleID)
 );
 GO

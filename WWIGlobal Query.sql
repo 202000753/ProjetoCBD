@@ -14,7 +14,8 @@ from OldData.City;
 
 --Customer
 select *
-from OldData.Customer;
+from OldData.Customer
+order by Customer;
 
 --Employee
 select *
@@ -22,7 +23,8 @@ from OldData.Employee;
 
 --Sale
 select *
-from OldData.Sale;
+from OldData.Sale
+order by [WWI Invoice ID];
 
 --Stock Item
 select *
@@ -40,26 +42,37 @@ from OldData.lookup;
  *	Tabelas novas
  ********************************************/
 select *
-from SalesInfo.Country;
+from UsersInfo.Country;
 
 select *
-from SalesInfo.StateProvince;
+from UsersInfo.StateProvince;
 
 select *
-from SalesInfo.StateProvince as sp
-join SalesInfo.Country as c
-on sp.StaProCountry = c.CouID;
+from UsersInfo.City;
 
 select *
-from SalesInfo.City;
+from UsersInfo.Category;
 
 select *
-from SalesInfo.StateProvince_City;
+from UsersInfo.Region_Category;
 
-select c.CitName, sp.StaProName
-from SalesInfo.City as c
-join SalesInfo.StateProvince_City as spc
-on c.CitID = spc.StaPro_CitCityID
-join SalesInfo.StateProvince as sp
-on sp.StaProID = spc.StaPro_CitStateID
-order by c.CitName, sp.StaProName;
+
+select *
+from UsersInfo.BuyingGroup;
+
+select *
+from UsersInfo.SysUser
+where SysUseName = '
+Tailspin Toys (Peeples Valley, AZ)
+Tailspin Toys (Peeples Valley, AZ)';
+
+select ci.*, sp.*, co.*, ca.*
+from UsersInfo.Region_Category as rc
+join UsersInfo.StateProvince as sp
+on rc.Reg_CatCitStateProvinceId = sp.StaProId
+join UsersInfo.Country as co
+on rc.Reg_CatCountryId = co.CouID
+join UsersInfo.City as ci
+on rc.Reg_CatCityId = ci.CitId
+join UsersInfo.Category as ca
+on rc.Reg_CatCategoryId = ca.CatId;
